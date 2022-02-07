@@ -2,12 +2,29 @@ import NextAuth from "next-auth";
 
 export default NextAuth({
   providers: [
-      {
+    {
       id: "instagram",
       name: "instagram",
       type: "oauth",
       version: "2.0",
-      token: "https://api.instagram.com/oauth/access_token",
+      token: {
+        url: "https://api.instagram.com/oauth/access_token",
+        async request({ client, params, checks, provider }) {
+          const response = await client.oauthCallback(
+            provider.callbackUrl,
+            params,
+            checks,
+            {
+              exchangeBody: {
+                client_id: client.client_id,
+                client_secret: client.client_secret,
+              },
+            }
+          );
+          console.log("response ====", response);
+          return { tokens: response };
+        },
+      },
       authorization: {
         url: "https://api.instagram.com/oauth/authorize",
         params: {
@@ -15,7 +32,7 @@ export default NextAuth({
         },
       },
       userinfo: {
-        url: "https://graph.instagram.com/me?fields=id",
+        url: "https://graph.instagram.com/me?fields=id, username, account_type, media_count, media",
         async request({ client, tokens }) {
           // Get base profile
           console.log("client", client);
@@ -23,7 +40,7 @@ export default NextAuth({
           const profile = await client.userinfo(tokens);
           // no email info from Pinterest API
           if (!profile.email) {
-            profile.email = profile.name;
+            profile.email = profile.username;
           }
           return profile;
         },
@@ -32,13 +49,13 @@ export default NextAuth({
       clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
 
       profile(profile, accessToken) {
-        console.log('token', accessToken);
-        console.log('profile', profile);
+        console.log("token", accessToken);
+        console.log("profile", profile);
         return {
-          id: profile.username,
-          name: profile.username,
+          id: profile.id,
+          name: profile.account_type,
           email: profile.email,
-          image: profile.profile_image,
+          image: profile.media_count,
         };
       },
       checks: "none",
@@ -79,6 +96,8 @@ export default NextAuth({
       clientSecret: process.env.PINTEREST_CLIENT_SECRET,
 
       profile(profile, accessToken) {
+        console.log("accessToken", accessToken);
+        console.log("profile", profile);
         return {
           id: profile.username,
           name: profile.username,
@@ -100,14 +119,11 @@ export default NextAuth({
     strategy: "jwt",
   },
 
-  jwt: {
-  },
+  jwt: {},
 
-  pages: {
-  },
+  pages: {},
 
-  callbacks: {
-  },
+  callbacks: {},
 
   events: {},
 
@@ -117,4 +133,3 @@ export default NextAuth({
 
   debug: false,
 });
-
