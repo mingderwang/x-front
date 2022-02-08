@@ -42,6 +42,7 @@ export default NextAuth({
           if (!profile.email) {
             profile.email = profile.username;
           }
+          profile.media.data.map(console.log);
           return profile;
         },
       },
