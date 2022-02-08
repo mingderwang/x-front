@@ -4,6 +4,7 @@ import { nft_storage } from "../helpers";
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function Pins({ ...props }) {
+  console.log("props", props);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const { data, error } = useSWR(
@@ -48,13 +49,13 @@ export default function Pins({ ...props }) {
       .join(`,\n `);
   }
 
-  async function createPin(pin) {
+  async function createInst(pin) {
     const result = await nft_storage.create(pin, callback);
     return result;
   }
 
-  const convertPins2NFT = async (pin) => {
-    await createPin(pin);
+  const convertInst2NFT = async (pin) => {
+    await createInst(pin);
   };
 
   return (
@@ -93,7 +94,7 @@ export default function Pins({ ...props }) {
                     <button
                       type="button"
                       onClick={() => {
-                        convertPins2NFT(pin);
+                        convertInst2NFT(pin);
                       }}
                       className="btn btn-secondary"
                     >
